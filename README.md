@@ -3,6 +3,11 @@ Monitoring the app and redirects data to log analytics.
 
 **Azure Application Insights** is a feature of Azure Monitor that provides extensible Application Performance Management (APM) for developers and DevOps professionals. It works by installing a SDK (i.e. small instrumentation package) in the .Net application, which monitors the app and directs telemetry data to an Azure Log Analytics workspace.
 
+## Covered Areas 
+- Connected with (Connection String + API Key)
+- Connected With (Workspace ID + Azure AD)
+- Connected With (Serilog + Connection String)
+
 ## Usage
 It is primarily used for:
 *   **Live Monitoring**: Automatically detecting performance anomalies.
