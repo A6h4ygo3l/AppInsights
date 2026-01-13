@@ -30,5 +30,38 @@ namespace AppInsightsDemo
 
             return Results.Ok(new { Message = "JSON ingested successfully", Tracked = true });
         }
+
+        public async Task<IResult> SearchLogs()
+        {
+            try
+            {
+                // Base KQL Query
+                // We are looking for custom events named 'JsonIngested'
+                string kql = @"
+                    AppEvents 
+                    | where Name == 'JsonIngested'";
+        
+                // Execute Query
+                Response<LogsQueryResult> response = await _logsQueryClient.QueryWorkspaceAsync(
+                    _workspaceId,
+                    kql,
+                    new QueryTimeRange(TimeSpan.FromDays(7))); // Query last 7 days by default
+        
+                var results = new List<string>();
+                foreach (var row in response.Value.Table.Rows)
+                {
+                    // row[0] is Payload based on projection
+                    string jsonString = row[3].ToString();
+                    results.Add(jsonString);
+                }
+        
+                return Results.Ok(results);
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem($"Error querying App Insights: {ex.Message}");
+            }
+        }
     }
 }
+
