@@ -1,11 +1,21 @@
 using AppInsightsDemo;
-
+using Microsoft.ApplicationInsights.Extensibility;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure Serilog
+builder.Host.UseSerilog((context, services, configuration) => configuration
+    .ReadFrom.Configuration(context.Configuration)
+    .WriteTo.Console()
+    .WriteTo.ApplicationInsights(
+        services.GetRequiredService<TelemetryConfiguration>(),
+        TelemetryConverter.Traces));
 
 // Add services to the container.
 builder.Services.AddSingleton<TestHandler>();
 builder.Services.AddSingleton<IngestionHandler>();
+builder.Services.AddSingleton<SerilogHandler>();
 builder.Services.AddApplicationInsightsTelemetry();
 builder.Services.AddOpenApi();
 
@@ -53,9 +63,27 @@ app.MapPost("/api/ingest", (IngestionHandler handler, System.Text.Json.JsonEleme
     return handler.Ingest(jsonPayload);
 });
 
+app.MapGet("/api/fetch", (IngestionHandler handler) =>
+{
+    return handler.SearchLogs();
+});
+
+// Serilog Endpoints
+app.MapPost("/api/serilog/ingest", (SerilogHandler handler, System.Text.Json.JsonElement jsonPayload) =>
+{
+    return handler.Ingest(jsonPayload);
+});
+
+app.MapGet("/api/serilog/fetch", (SerilogHandler handler, string? tenantId, string? correlationId) =>
+{
+    return handler.Fetch();
+});
+
+
 app.Run();
 
 record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {
     public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 }
+
